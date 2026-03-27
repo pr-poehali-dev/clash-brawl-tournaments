@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 
+const AUTH_URL = "https://functions.poehali.dev/b9807039-6c40-475a-b250-95ce6eb5c88f";
+
 type Tab = "tournaments" | "rating" | "profile";
 type Game = "CR" | "BS" | "all";
 type AuthStep = "choose" | "login" | "register";
@@ -61,6 +63,8 @@ export default function Index() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [formData, setFormData] = useState({ tag: "", name: "", password: "" });
+  const [authError, setAuthError] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -85,22 +89,40 @@ export default function Index() {
     legendary: "border-purple-500/40 bg-purple-500/5",
   };
 
-  const handleLogin = () => {
-    if (formData.tag) {
-      setUserName(formData.tag);
-      setIsLoggedIn(true);
-      setAuthOpen(false);
-      setFormData({ tag: "", name: "", password: "" });
-    }
+  const handleLogin = async () => {
+    if (!formData.tag) return;
+    setAuthLoading(true);
+    setAuthError("");
+    const res = await fetch(AUTH_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "login", game: authGame, tag: formData.tag }),
+    });
+    const data = await res.json();
+    setAuthLoading(false);
+    if (!res.ok) { setAuthError(data.error || "Ошибка входа"); return; }
+    setUserName(data.name);
+    setIsLoggedIn(true);
+    setAuthOpen(false);
+    setFormData({ tag: "", name: "", password: "" });
   };
 
-  const handleRegister = () => {
-    if (formData.tag && formData.name) {
-      setUserName(formData.name);
-      setIsLoggedIn(true);
-      setAuthOpen(false);
-      setFormData({ tag: "", name: "", password: "" });
-    }
+  const handleRegister = async () => {
+    if (!formData.tag || !formData.name) return;
+    setAuthLoading(true);
+    setAuthError("");
+    const res = await fetch(AUTH_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "register", game: authGame, tag: formData.tag, name: formData.name }),
+    });
+    const data = await res.json();
+    setAuthLoading(false);
+    if (!res.ok) { setAuthError(data.error || "Ошибка регистрации"); return; }
+    setUserName(data.name);
+    setIsLoggedIn(true);
+    setAuthOpen(false);
+    setFormData({ tag: "", name: "", password: "" });
   };
 
   return (
@@ -553,7 +575,7 @@ export default function Index() {
 
               {authStep === "login" && (
                 <div className="space-y-4">
-                  <button onClick={() => setAuthStep("choose")} className="flex items-center gap-1.5 text-muted-foreground text-sm hover:text-white transition-colors mb-4">
+                  <button onClick={() => { setAuthStep("choose"); setAuthError(""); }} className="flex items-center gap-1.5 text-muted-foreground text-sm hover:text-white transition-colors mb-4">
                     <Icon name="ChevronLeft" size={14} /> Назад
                   </button>
 
@@ -574,15 +596,16 @@ export default function Index() {
                     />
                   </div>
 
-                  <button onClick={handleLogin} className={`w-full py-3.5 rounded-xl font-oswald tracking-wide text-sm mt-2 ${authGame === "CR" ? "btn-cr" : "btn-bs"}`}>
-                    Войти
+                  {authError && <div className="text-red-400 text-xs font-oswald text-center py-1">{authError}</div>}
+                  <button onClick={handleLogin} disabled={authLoading} className={`w-full py-3.5 rounded-xl font-oswald tracking-wide text-sm mt-2 disabled:opacity-60 ${authGame === "CR" ? "btn-cr" : "btn-bs"}`}>
+                    {authLoading ? "Проверяем..." : "Войти"}
                   </button>
                 </div>
               )}
 
               {authStep === "register" && (
                 <div className="space-y-4">
-                  <button onClick={() => setAuthStep("choose")} className="flex items-center gap-1.5 text-muted-foreground text-sm hover:text-white transition-colors mb-2">
+                  <button onClick={() => { setAuthStep("choose"); setAuthError(""); }} className="flex items-center gap-1.5 text-muted-foreground text-sm hover:text-white transition-colors mb-2">
                     <Icon name="ChevronLeft" size={14} /> Назад
                   </button>
 
@@ -618,8 +641,9 @@ export default function Index() {
                     </div>
                   ))}
 
-                  <button onClick={handleRegister} className={`w-full py-3.5 rounded-xl font-oswald tracking-wide text-sm ${authGame === "CR" ? "btn-cr" : "btn-bs"}`}>
-                    Зарегистрироваться
+                  {authError && <div className="text-red-400 text-xs font-oswald text-center py-1">{authError}</div>}
+                  <button onClick={handleRegister} disabled={authLoading} className={`w-full py-3.5 rounded-xl font-oswald tracking-wide text-sm disabled:opacity-60 ${authGame === "CR" ? "btn-cr" : "btn-bs"}`}>
+                    {authLoading ? "Сохраняем..." : "Зарегистрироваться"}
                   </button>
                 </div>
               )}
