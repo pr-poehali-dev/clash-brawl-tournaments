@@ -86,7 +86,7 @@ export default function Index() {
   };
 
   const handleLogin = () => {
-    if (formData.tag && formData.password) {
+    if (formData.tag) {
       setUserName(formData.tag);
       setIsLoggedIn(true);
       setAuthOpen(false);
@@ -95,7 +95,7 @@ export default function Index() {
   };
 
   const handleRegister = () => {
-    if (formData.tag && formData.name && formData.password) {
+    if (formData.tag && formData.name) {
       setUserName(formData.name);
       setIsLoggedIn(true);
       setAuthOpen(false);
@@ -563,21 +563,16 @@ export default function Index() {
                     </span>
                   </div>
 
-                  {[
-                    { label: "Тег игрока (например: #ABC123)", key: "tag", placeholder: "#ABC123", type: "text" },
-                    { label: "Пароль платформы", key: "password", placeholder: "••••••••", type: "password" },
-                  ].map(field => (
-                    <div key={field.key}>
-                      <label className="text-xs font-oswald tracking-widest text-muted-foreground uppercase mb-1.5 block">{field.label}</label>
-                      <input
-                        type={field.type}
-                        placeholder={field.placeholder}
-                        value={formData[field.key as keyof typeof formData]}
-                        onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
-                        className="w-full bg-white/5 border border-border rounded-xl px-4 py-3 text-white font-oswald text-sm placeholder-muted-foreground focus:outline-none focus:border-yellow-500/60 transition-colors"
-                      />
-                    </div>
-                  ))}
+                  <div>
+                    <label className="text-xs font-oswald tracking-widest text-muted-foreground uppercase mb-1.5 block">Тег игрока (например: #ABC123)</label>
+                    <input
+                      type="text"
+                      placeholder="#ABC123"
+                      value={formData.tag}
+                      onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                      className="w-full bg-white/5 border border-border rounded-xl px-4 py-3 text-white font-oswald text-sm placeholder-muted-foreground focus:outline-none focus:border-yellow-500/60 transition-colors"
+                    />
+                  </div>
 
                   <button onClick={handleLogin} className={`w-full py-3.5 rounded-xl font-oswald tracking-wide text-sm mt-2 ${authGame === "CR" ? "btn-cr" : "btn-bs"}`}>
                     Войти
@@ -610,7 +605,6 @@ export default function Index() {
                   {[
                     { label: "Тег игрока из игры", key: "tag", placeholder: "#ABC123", type: "text" },
                     { label: "Имя на платформе", key: "name", placeholder: "Твой ник", type: "text" },
-                    { label: "Придумай пароль", key: "password", placeholder: "••••••••", type: "password" },
                   ].map(field => (
                     <div key={field.key}>
                       <label className="text-xs font-oswald tracking-widest text-muted-foreground uppercase mb-1.5 block">{field.label}</label>
